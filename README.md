@@ -23,7 +23,8 @@ docker compose logs -f
 |---|---|---|
 | `FEED_URL` | (필수) | 감시할 RSS URL |
 | `KEYWORDS` | (빈 값) | `장학` / `장학, 공모전` / `["장학", "AI 아카데미"]`. 여러 개면 OR, 대소문자 무시. 키워드에 쉼표가 들어가면 JSON 배열로. **비워두면 모든 새 글을 알림** |
-| `NOTIFY_URLS` | (빈 값) | Apprise URL. 여러 개면 공백/쉼표로 구분. 비워두면 로그로만 출력 (테스트용) |
+| `NOTIFY_URLS` | (빈 값) | Apprise URL. 여러 개면 공백/쉼표/줄바꿈으로 구분. 비워두면 로그로만 출력 (테스트용). 파일 경로(`/run/secrets/...`)를 주면 파일 내용을 읽음 |
+| `NOTIFY_URLS_FILE` | (빈 값) | `NOTIFY_URLS` 를 이 파일에서 읽음 (Docker secrets 용) |
 | `SCHEDULE` | `*/5 * * * *` | 확인 스케줄 (cron: 분 시 일 월 요일) |
 | `TZ` | `Asia/Seoul` | `SCHEDULE` 과 로그 시각의 기준 시간대. `docker-compose.yml` 의 `environment` 에서 설정 |
 | `RUN_ON_START` | `true` | 시작 직후 한 번 바로 확인할지 |
@@ -53,6 +54,24 @@ docker compose logs -f
 | ntfy | `ntfys://ntfy.sh/my-topic` |
 
 여러 곳에 동시에 보내려면 공백으로 이어 붙이면 된다.
+
+### Docker secrets 로 넣기
+
+웹훅 URL을 `.env` 에 두기 싫으면 secrets 파일로 넣을 수 있다
+(파일은 컨테이너 사용자 uid 1000 이 읽을 수 있어야 함):
+
+```yaml
+services:
+  rssmonitor:
+    environment:
+      - NOTIFY_URLS=/run/secrets/rssmonitor_notify_urls
+    secrets:
+      - rssmonitor_notify_urls
+
+secrets:
+  rssmonitor_notify_urls:
+    file: ${SECRETS_DIR:-${HOME}/.secrets}/rssmonitor_notify_urls
+```
 
 메시지에 붙는 Apprise 이름/아이콘은 코드에서 제거해 두었다(`rssmonitor` 로 표시).
 Slack은 URL 끝에 `?footer=no` 를 붙이면 하단 표시줄 자체가 사라진다:

@@ -47,6 +47,23 @@ def parse_keywords(raw: str) -> list[str]:
     return [k.strip() for k in keywords if k.strip()]
 
 
+def env_secret(name: str) -> str:
+    """민감한 값을 환경변수 또는 파일(Docker secrets)에서 읽는다.
+
+    - NAME_FILE=/run/secrets/xxx  -> 파일 내용 사용 (postgres 등 공식 이미지와 같은 규칙)
+    - NAME=/run/secrets/xxx       -> 값이 존재하는 파일 경로면 파일 내용 사용 (watchtower 방식)
+    - NAME=값                     -> 그대로 사용
+    """
+    path = os.environ.get(f"{name}_FILE", "").strip()
+    value = os.environ.get(name, "").strip()
+    if not path and value.startswith("/") and os.path.isfile(value):
+        path = value
+    if path:
+        with open(path, encoding="utf-8") as f:
+            return f.read().strip()
+    return value
+
+
 def env_bool(name: str, default: bool) -> bool:
     return os.environ.get(name, str(default)).strip().lower() in ("1", "true", "yes")
 
@@ -56,8 +73,9 @@ class Config:
         env = os.environ
         self.feed_url = env.get("FEED_URL", "").strip()
         self.keywords = parse_keywords(env.get("KEYWORDS", ""))
-        # Apprise URL. 여러 개면 공백/쉼표로 구분. Slack 웹훅 URL은 그대로 넣어도 됨
-        self.notify_urls = env.get("NOTIFY_URLS", "").strip()
+        # Apprise URL. 여러 개면 공백/쉼표/줄바꿈으로 구분. Slack 웹훅 URL은 그대로 넣어도 됨
+        # Docker secrets 파일 경로로도 줄 수 있음 (env_secret 참고)
+        self.notify_urls = env_secret("NOTIFY_URLS")
         # cron 표현식: 분 시 일 월 요일
         self.schedule = env.get("SCHEDULE", "*/5 * * * *").strip()
         self.timezone = ZoneInfo(env.get("TZ", "Asia/Seoul"))
