@@ -1,0 +1,2 @@
+apprise==2.1.0
+APScheduler==3.11.3

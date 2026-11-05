@@ -1,0 +1,6 @@
+# 화이트리스트: 아래에 명시한 것만 빌드 컨텍스트에 포함
+*
+!src/
+!requirements.txt
+**/__pycache__
+**/*.pyc

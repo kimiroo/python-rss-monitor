@@ -1,0 +1,12 @@
+services:
+  rssmonitor:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      TZ: Asia/Seoul  # SCHEDULE(cron)과 로그 시각의 기준 시간대
+    volumes:
+      - rssmonitor:/data
+
+volumes:
+  rssmonitor:
