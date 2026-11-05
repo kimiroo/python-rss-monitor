@@ -1,5 +1,8 @@
 FROM python:3.13-alpine
 
+LABEL org.opencontainers.image.source=https://github.com/kimiroo/python-rss-monitor \
+      org.opencontainers.image.description="RSS keyword monitor with Apprise notifications"
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
